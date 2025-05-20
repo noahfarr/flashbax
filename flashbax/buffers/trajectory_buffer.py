@@ -48,11 +48,33 @@ class TrajectoryBufferState(Generic[Experience]):
         current_index: Index where the next batch of experience data will be added to.
         is_full: Whether the buffer state is completely full with experience (otherwise it will
             have some empty padded values).
+        add_fn : Convenience handle to :func:`flashbax.trajectory_buffer.add`
+        with all static arguments already bound by
+        :func:`flashbax.trajectory_buffer.make_trajectory_buffer`.
+        Call ``state = state.add_fn(state, batch)`` to append a new
+        batch without passing the buffer object around.
+    sample_fn : Bound version of :func:`flashbax.trajectory_buffer.sample`
+        (``batch_size``, ``sequence_length`` and ``period`` are fixed).
+        Invoke ``sample = state.sample_fn(state, rng_key)`` to draw a
+        batch of trajectories.
+    can_sample : Predicate wrapping :func:`flashbax.trajectory_buffer.can_sample`
+        with ``min_length_time_axis`` fixed.  Use
+        ``state.can_sample(state)`` to check if the buffer currently
+        holds enough data to be sampled.
     """
 
     experience: Experience
     current_index: Array
     is_full: Array
+    add_fn: Callable[
+        [BufferState, Experience],
+        BufferState,
+    ]
+    sample_fn: Callable[
+        [BufferState, chex.PRNGKey],
+        BufferSample,
+    ]
+    can_sample: Callable[[BufferState], Array]
 
 
 @dataclass(frozen=True)
